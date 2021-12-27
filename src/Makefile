@@ -6,8 +6,8 @@
  # Author     : Dhanush.K (dhanushsandy98@gmail.com)
  # Date       : 19/11/2021
  # 
- # Revised on : 11/11/2021
- # Version    : V0.0.1
+ # Revised on : 27/12/2021
+ # Version    : V0.0.2
  # 
  # Brief      : Project make file, Please read carefully and build the project by following commands, 
  #              Build		: ~$ make (or) make	all
@@ -23,48 +23,88 @@
  ##
 ############################################################################################################################
 
-# Application Name
-APP = EXAMPLE
+# Project Name
+PROJECT_NAME = EXAMPLE_MAKE
 
-# Target files
-TARGETS = \
+# Application Name
+PROGRAM = $(PROJECT_NAME)_APP
+
+# Project Directory
+PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
 # Run time Auguments
-RUN_ARUG = \
+RUN_ARUG +=
 
-# Macro Configuration Arguments
-MARCO_ARUG = \
--D \
-_DEFAULT_SOURCE
-
-# Additinal Library Arguments
-LIB_ARUG = \
-
-# Compiler Options
+# Compiler Target Options
 CC_C = gcc
+CC_CPP = g++
+
+# Project files
+C_MAIN  += Main.c
+C_FILES += 
+
+# Load Library.
+LDLIBS +=
+
+# Linker Flags.
+LDFLAGS += 
+
+# Feature Test Macros Arguments,
+# "-D_DEFAULT_SOURCE" Enables the Features from 2008 edition of POSIX
+#		|-> Here we used for "usleep" function call.
+# "-D_GNU_SOURCE" Everything is included: ISO C89, C99, POSEX.1, POSEX.2, BSD, SVID, X/Open, LFS and GNU Extention.
+#		|-> Here we used for "pthread_setname_np" function call.
+MARCO_ARUG += -D_DEFAULT_SOURCE
+MARCO_ARUG += -D_GNU_SOURCE
 
 # Build Path
-BUILD_PATH = ./build/
+BUILD_DIR = ./build
 
-# Build Arguments
-CFLAGS = -Wall -g -std=$(STD_VAR)
+# Objects Directory
+OBJ_DIR = $(BUILD_DIR)/obj
+
+# Object Files
+OBJECTS := $(addprefix $(OBJ_DIR)/default/, $(C_FILES:%.c=%.o))
+
+# C-Standards
 STD_VAR = c99
 
-# Make commands
-all: clean $(APP)
+# Build Arguments
+CFLAGS += -Wall				# Enable all Warnings
+CFLAGS += -O3				# Optimization Level, -O3 optimize max.
+CFLAGS += -std=$(STD_VAR)	# C-Standards
 
-# Build Application
-$(APP):
-	$(CC_C) $(MARCO_ARUG) $(CFLAGS) $(TARGETS) -o $(BUILD_PATH)$(APP)_APP $(LIB_ARUG)
+#-----------------------------------------------------------------------------------------------------------
+# Makefile Targets
+#-----------------------------------------------------------------------------------------------------------
+# Main Build target
+all: start $(PROGRAM)
+
+# Startup Message
+start:
+	@echo "Builing $(PROGRAM)...\n"
+
+# Default Build Traget
+$(PROGRAM): $(C_MAIN) $(OBJECTS)
+	$(CC_C) $(MARCO_ARUG) $(CFLAGS) -g $(C_MAIN) $(OBJECTS) -o $(BUILD_DIR)/$@ $(LDFLAGS) $(LDLIBS)
+	@echo "\n$(CC_C) Build Finish.!\n"
+
+$(OBJ_DIR)/default/%.o: %.c %.h
+	@mkdir -p $(@D)
+	$(CC_C) $(MARCO_ARUG) $(CFLAGS) -c $< -o $@ $(LDFLAGS) $(LDLIBS)
 
 # Run the Application
 run: $(APP)
-	$(BUILD_PATH)$(APP)_APP
+	@echo Running the $(PROGRAM)
+	$(BUILD_PATH)$(APP)_APP $(RUN_ARUG)
 
 # Clean Build
 clean:
-	rm -rf $(BUILD_PATH)*
+	-rm -rf ./build/*
+	@echo "Clean Finished.!"
+
+.PHONY: clean run
 
 ############################################################################################################
-##											End of File                                                   ##
+## End of File												  ##
 ############################################################################################################
